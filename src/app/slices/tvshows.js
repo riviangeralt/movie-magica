@@ -8,6 +8,7 @@ const initialState = {
   individualTvShow: {},
   season: {},
   episode: {},
+  trendingTvShows: [],
 };
 
 export const getTvShows = createAsyncThunk("getTvShows", async () => {
@@ -43,6 +44,18 @@ export const getShowEpisode = createAsyncThunk("showEpisode", async (data) => {
   return response.data;
 });
 
+export const getTrendingTvShows = createAsyncThunk(
+  "getTrendingTvShows",
+  async (page) => {
+    const response = await instance.get(
+      `/trending/tv/week?api_key=4622bea788550ade8391ab66ed1e6dcc&page=${
+        page ? page : 2
+      }`
+    );
+    return response.data;
+  }
+);
+
 const tvShowSlice = createSlice({
   name: "tvShow",
   initialState,
@@ -59,7 +72,16 @@ const tvShowSlice = createSlice({
       state.isLoading = true;
     },
     [getTvShows.fulfilled]: (state, action) => {
-      return { ...state, tvShows: action.payload.results, isLoading: false };
+      return {
+        ...state,
+        tvShows: action.payload.results?.map((item) => {
+          return {
+            ...item,
+            isMovie: false,
+          };
+        }),
+        isLoading: false,
+      };
     },
     [getTvShows.rejected]: (state, action) => {
       state.isLoading = false;
@@ -92,6 +114,25 @@ const tvShowSlice = createSlice({
       return { ...state, episode: action.payload, isLoading: false };
     },
     [getShowEpisode.rejected]: (state, action) => {
+      state.isLoading = false;
+      state.error = action.error.message;
+    },
+    [getTrendingTvShows.pending]: (state, action) => {
+      state.isLoading = true;
+    },
+    [getTrendingTvShows.fulfilled]: (state, action) => {
+      return {
+        ...state,
+        trendingTvShows: action.payload.results?.map((tvShow) => {
+          return {
+            ...tvShow,
+            isMovie: false,
+          };
+        }),
+        isLoading: false,
+      };
+    },
+    [getTrendingTvShows.rejected]: (state, action) => {
       state.isLoading = false;
       state.error = action.error.message;
     },

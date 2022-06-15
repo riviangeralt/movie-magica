@@ -7,11 +7,13 @@ const initialState = {
   error: null,
   individualMovie: {},
   collection: {},
+  trendingMovies: [],
+  cast: [],
 };
 
 export const getMovies = createAsyncThunk("getMovies", async () => {
   const response = await instance.get(
-    "/discover/movie?api_key=4622bea788550ade8391ab66ed1e6dcc"
+    "/discover/movie?api_key=4622bea788550ade8391ab66ed1e6dcc&include_video=true"
   );
   return response.data;
 });
@@ -36,6 +38,25 @@ export const getMovieCollection = createAsyncThunk(
   }
 );
 
+export const getTrendingMovies = createAsyncThunk(
+  "getTrendingMovies",
+  async (page) => {
+    const response = await instance.get(
+      `/trending/movie/week?api_key=4622bea788550ade8391ab66ed1e6dcc&page=${
+        page ? page : 2
+      }`
+    );
+    return response.data;
+  }
+);
+
+export const getCast = createAsyncThunk("getCast", async (id) => {
+  const response = await instance.get(
+    `/movie/${id}/credits?api_key=4622bea788550ade8391ab66ed1e6dcc`
+  );
+  return response.data;
+});
+
 const movieSlice = createSlice({
   name: "movie",
   initialState,
@@ -52,7 +73,16 @@ const movieSlice = createSlice({
       state.isLoading = true;
     },
     [getMovies.fulfilled]: (state, action) => {
-      return { ...state, movies: action.payload.results, isLoading: false };
+      return {
+        ...state,
+        movies: action.payload.results.map((item) => {
+          return {
+            ...item,
+            isMovie: true,
+          };
+        }),
+        isLoading: false,
+      };
     },
     [getMovies.rejected]: (state, action) => {
       state.isLoading = false;
@@ -75,6 +105,35 @@ const movieSlice = createSlice({
       return { ...state, collection: action.payload, isLoading: false };
     },
     [getMovieCollection.rejected]: (state, action) => {
+      state.isLoading = false;
+      state.error = action.error.message;
+    },
+    [getTrendingMovies.pending]: (state, action) => {
+      state.isLoading = true;
+    },
+    [getTrendingMovies.fulfilled]: (state, action) => {
+      return {
+        ...state,
+        trendingMovies: action.payload.results.map((item) => {
+          return {
+            ...item,
+            isMovie: true,
+          };
+        }),
+        isLoading: false,
+      };
+    },
+    [getTrendingMovies.rejected]: (state, action) => {
+      state.isLoading = false;
+      state.error = action.error.message;
+    },
+    [getCast.pending]: (state, action) => {
+      state.isLoading = true;
+    },
+    [getCast.fulfilled]: (state, action) => {
+      return { ...state, cast: action.payload.cast, isLoading: false };
+    },
+    [getCast.rejected]: (state, action) => {
       state.isLoading = false;
       state.error = action.error.message;
     },

@@ -1,19 +1,21 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import "./index.css";
 import App from "./App";
-import reportWebVitals from "./reportWebVitals";
-import "antd/dist/antd.less";
+import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import { BrowserRouter } from "react-router-dom";
+import "swiper/css";
+import "swiper/css/navigation";
 import { Provider } from "react-redux";
 import store from "./app/store";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <Provider store={store}>
-    <BrowserRouter>
+  <BrowserRouter>
+    <Provider store={store}>
       <App />
-    </BrowserRouter>
-  </Provider>
+    </Provider>
+  </BrowserRouter>
 );
 
-reportWebVitals();
+serviceWorkerRegistration.register();
